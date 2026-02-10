@@ -1,0 +1,492 @@
+{
+  "All India": {
+    "wind_energy": {
+      "min": 14.53,
+      "max": 619.44
+    },
+    "solar_energy": {
+      "min": 74.39,
+      "max": 533.24
+    },
+    "other_renewable_energy": {
+      "min": 4.86,
+      "max": 114.82
+    }
+  },
+  "Andhra Pradesh": {
+    "wind_energy": {
+      "min": 0.14,
+      "max": 80.94
+    },
+    "solar_energy": {
+      "min": 2.27,
+      "max": 42.62
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 1.96
+    }
+  },
+  "Arunachal Pradesh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.78
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 2.8
+    }
+  },
+  "Assam": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 3.32
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.42
+    }
+  },
+  "Bihar": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 1.57
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 1.71
+    }
+  },
+  "Chandigarh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Chhattisgarh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 113.1
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 30.0
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 7.25
+    }
+  },
+  "Delhi": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 1.1
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 2.28
+    }
+  },
+  "Goa": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 25.81
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 7.76
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Gujarat": {
+    "wind_energy": {
+      "min": 1.7,
+      "max": 214.06
+    },
+    "solar_energy": {
+      "min": 3.61,
+      "max": 103.25
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 12.1
+    }
+  },
+  "Haryana": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 10.64
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.14
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 12.41
+    }
+  },
+  "Himachal Pradesh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.34
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 17.24
+    }
+  },
+  "Jammu And Kashmir": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 10.49
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 14.43
+    }
+  },
+  "Jharkhand": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.6
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 1.57
+    }
+  },
+  "Karnataka": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 93.12
+    },
+    "solar_energy": {
+      "min": 8.05,
+      "max": 87.11
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 88.85
+    }
+  },
+  "Kerala": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 78.36
+    },
+    "solar_energy": {
+      "min": 0.05,
+      "max": 34.75
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 7.44
+    }
+  },
+  "Ladakh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Madhya Pradesh": {
+    "wind_energy": {
+      "min": 0.1,
+      "max": 102.3
+    },
+    "solar_energy": {
+      "min": 1.8,
+      "max": 31.15
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 4.2
+    }
+  },
+  "Maharashtra": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 71.8
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 34.9
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 1.8
+    }
+  },
+  "Manipur": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.45
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Meghalaya": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.1
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Mizoram": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 1.58
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Nagaland": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Odisha": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 10.48
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 9.18
+    }
+  },
+  "Puducherry": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 40.08
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 37.0
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Punjab": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 1.83
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 5.7
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 5.48
+    }
+  },
+  "Rajasthan": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 85.66
+    },
+    "solar_energy": {
+      "min": 1.6,
+      "max": 202.94
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 5.13
+    }
+  },
+  "Sikkim": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.64
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 2.88
+    }
+  },
+  "Tamil Nadu": {
+    "wind_energy": {
+      "min": 0.55,
+      "max": 156.34
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 51.72
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 21.3
+    }
+  },
+  "Telangana": {
+    "wind_energy": {
+      "min": 0.02,
+      "max": 57.31
+    },
+    "solar_energy": {
+      "min": 2.58,
+      "max": 25.54
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 38.18
+    }
+  },
+  "The Dadra And Nagar Haveli And Daman And Diu": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 63.7
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 6.1
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "Tripura": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.64
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 0.02
+    }
+  },
+  "Uttar Pradesh": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 71.29
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 19.39
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 21.6
+    }
+  },
+  "Uttarakhand": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 4.9
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 4.48
+    }
+  },
+  "West Bengal": {
+    "wind_energy": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "solar_energy": {
+      "min": 0.0,
+      "max": 2.64
+    },
+    "other_renewable_energy": {
+      "min": 0.0,
+      "max": 89.0
+    }
+  }
+}

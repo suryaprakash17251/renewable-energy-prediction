@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoPredict</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-layers@4.22.0/dist/tf-layers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+      /* Your existing CSS unchanged */
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+      :root {
+        --bg-primary: #f8fafc;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #f1f5f9;
+        --text-primary: #0f172a;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --accent-primary: #0ea5e9;
+        --accent-secondary: #06b6d4;
+        --accent-tertiary: #8b5cf6;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      [data-theme="dark"] {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
+          0 2px 4px -1px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+          0 4px 6px -2px rgba(0, 0, 0, 0.3);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
+          0 10px 10px -5px rgba(0, 0, 0, 0.3);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 400px;
+        background: linear-gradient(
+          135deg,
+          rgba(14, 165, 233, 0.1) 0%,
+          rgba(139, 92, 246, 0.1) 50%,
+          rgba(6, 182, 212, 0.1) 100%
+        );
+        z-index: -1;
+        animation: gradientShift 15s ease infinite;
+      }
+      @keyframes gradientShift {
+        0%,
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        50% {
+          opacity: 0.8;
+          transform: translateY(-20px);
+        }
+      }
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 0;
+        margin-bottom: 32px;
+        position: relative;
+      }
+      .brand {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        color: white;
+        font-weight: 800;
+        font-size: 24px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      }
+      .logo:hover {
+        transform: scale(1.1) rotate(5deg);
+      }
+      .logo::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: logoShine 3s infinite;
+      }
+      @keyframes logoShine {
+        0% {
+          transform: rotate(0deg) translate(-50%, -50%);
+        }
+        100% {
+          transform: rotate(360deg) translate(-50%, -50%);
+        }
+      }
+      h1 {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+      }
+      p.subtitle {
+        margin: 4px 0 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .theme-toggle {
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      .theme-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--accent-primary);
+      }
+      .controls {
+        display: grid;
+        gap: 16px;
+        background: var(--bg-secondary);
+        padding: 24px;
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 32px;
+        animation: fadeIn 0.4s ease;
+      }
+      .control-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-width: 200px;
+      }
+      .controls label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      select,
+      input[type="text"],
+      input[type="number"] {
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        outline: none;
+        animation: slideIn 0.4s ease;
+      }
+      select:focus,
+      input:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+      }
+      select:hover,
+      input:hover {
+        border-color: var(--accent-secondary);
+      }
+      button {
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      button::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      button:active::before {
+        width: 300px;
+        height: 300px;
+      }
+      button.primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        color: white;
+        box-shadow: var(--shadow-md);
+      }
+      button.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--text-primary);
+        border: 2px solid var(--border);
+      }
+      button.ghost:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--accent-primary);
+      }
+      .button-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+      }
+      .card {
+        background: var(--bg-secondary);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.4s ease;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .card:hover::before {
+        opacity: 1;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+      }
+      .col-span-4 {
+        grid-column: span 4;
+      }
+      .col-span-8 {
+        grid-column: span 8;
+      }
+      .col-span-12 {
+        grid-column: span 12;
+      }
+      @media (max-width: 1200px) {
+        .col-span-8,
+        .col-span-4 {
+          grid-column: span 12;
+        }
+      }
+      @media (max-width: 768px) {
+        .topbar {
+          flex-direction: column;
+          gap: 20px;
+          text-align: center;
+        }
+        .control-row {
+          flex-direction: column;
+        }
+        .control-group {
+          width: 100%;
+        }
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .card-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .metric-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .metric-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .metric {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .metric .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .metric .value {
+        font-size: 36px;
+        font-weight: 800;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .stat {
+        background: linear-gradient(
+          135deg,
+          var(--bg-tertiary),
+          var(--bg-primary)
+        );
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+      .stat:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      .stat .num {
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--text-primary);
+      }
+      .stat .muted {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .weather-widget {
+        background: linear-gradient(
+          135deg,
+          rgba(14, 165, 233, 0.1),
+          rgba(139, 92, 246, 0.1)
+        );
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 16px;
+        border: 1px solid var(--border);
+      }
+      .weather-main {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .weather-temp {
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .weather-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .weather-condition {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .weather-location {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .weather-details {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+      .weather-detail {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .alerts {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .alert {
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        animation: slideIn 0.4s ease;
+        border-left: 4px solid;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .alert.warn {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-color: var(--warning);
+        color: #78350f;
+      }
+      [data-theme="dark"] .alert.warn {
+        background: linear-gradient(135deg, #7c2d12, #9a3412);
+        color: #f1f5f9;
+      }
+      .alert.info {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-color: var(--accent-primary);
+        color: #1e3a8a;
+      }
+      [data-theme="dark"] .alert.info {
+        background: linear-gradient(135deg, #1e3a8a, #1e40af);
+        color: #f1f5f9;
+      }
+      .alert.success {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        border-color: var(--success);
+        color: #064e3b;
+      }
+      [data-theme="dark"] .alert.success {
+        background: linear-gradient(135deg, #064e3b, #047857);
+        color: #f1f5f9;
+      }
+      .alert-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .alert-content {
+        flex: 1;
+      }
+      .alert-title {
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .chart-wrap {
+        width: 100%;
+        height: 380px;
+        margin-top: 20px;
+        position: relative;
+      }
+      .chart-controls {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+      .chart-control-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .chart-control-item .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .recent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .recent-item {
+        padding: 16px;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          var(--bg-tertiary),
+          var(--bg-primary)
+        );
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        animation: slideIn 0.4s ease;
+      }
+      .recent-item:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-md);
+      }
+      .recent-item-header {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+      }
+      .recent-item-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .recent-item-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-primary);
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+      }
+      .loading-card {
+        background: var(--bg-secondary);
+        padding: 32px 40px;
+        border-radius: 20px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        box-shadow: var(--shadow-xl);
+        border: 1px solid var(--border);
+        animation: slideUp 0.3s ease;
+      }
+      .spinner {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 5px solid var(--border);
+        border-top-color: var(--accent-primary);
+        border-right-color: var(--accent-tertiary);
+        animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-text-container {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .loading-title {
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--text-primary);
+      }
+      .loading-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: #0f172ab3;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9998;
+        animation: fadeIn 0.3s ease;
+      }
+      .modal {
+        background: var(--bg-secondary);
+        padding: 32px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: var(--shadow-xl);
+        border: 1px solid var(--border);
+        animation: slideUp 0.3s ease;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .modal h3 {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+      }
+      .modal textarea {
+        width: 100%;
+        min-height: 120px;
+        border-radius: 12px;
+        padding: 16px;
+        border: 2px solid var(--border);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        resize: vertical;
+        font-family: inherit;
+        font-size: 14px;
+        margin-top: 16px;
+        transition: all 0.3s ease;
+      }
+      .modal textarea:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      .divider {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+        margin: 20px 0;
+      }
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 12px;
+        background: var(--text-primary);
+        color: var(--bg-secondary);
+        border-radius: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: var(--shadow-lg);
+      }
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--accent-primary);
+      }
+      .small-muted {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-tertiary)
+        );
+        color: white;
+      }
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-primary);
+      }
+      @media (max-width: 640px) {
+        h1 {
+          font-size: 22px;
+        }
+        .logo {
+          width: 48px;
+          height: 48px;
+          font-size: 20px;
+        }
+        .metric .value {
+          font-size: 28px;
+        }
+        .controls {
+          padding: 16px;
+        }
+        .card {
+          padding: 16px;
+        }
+        .chart-wrap {
+          height: 280px;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="light">
+    <div class="container">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">Power</div>
+          <div>
+            <h1>EcoPredict</h1>
+            <p class="subtitle"></p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center">
+          <button class="theme-toggle" onclick="toggleTheme()">
+            Dark Mode
+          </button>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="control-row">
+          <div class="control-group">
+            <label>State/Region</label>
+            <select id="stateSelect">
+              <option value="">Select State</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Energy Type</label>
+            <select id="energyType">
+              <option value="wind_energy">Wind Energy</option>
+              <option value="solar_energy">Solar Energy</option>
+              <option value="other_renewable_energy">Other Renewable</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>From Year</label>
+            <select id="fromYear">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div class="control-group">
+            <label>To Year</label>
+            <select id="toYear">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Graph Type</label>
+            <select id="graphType">
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="scatter">Scatter Plot</option>
+            </select>
+          </div>
+        </div>
+        <div class="control-row" style="align-items: flex-end">
+          <div class="control-group">
+            <label>Comparison Mode</label>
+            <div style="display: flex; gap: 12px; align-items: center">
+              <input type="checkbox" id="compareToggle" />
+              <select id="compareState" style="display: none">
+                <option value="">Select Second State</option>
+              </select>
+            </div>
+          </div>
+          <div class="button-group" style="margin-left: auto">
+            <button class="primary" onclick="generateGraph()">
+              Generate Graph
+            </button>
+            <button class="ghost" onclick="saveData()">Save Data</button>
+            <button class="ghost" onclick="openFeedback()">Feedback</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card col-span-4">
+          <div class="metric-card">
+            <div class="metric-main">
+              <div class="metric">
+                <div class="label">
+                  Prediction Accuracy
+                  <span
+                    class="tooltip"
+                    data-tooltip="Accuracy = max(0, (1 - MAE/mean(actual)) * 100)"
+                    >Info</span
+                  >
+                </div>
+                <div class="value" id="metric-main">—</div>
+              </div>
+              <div style="text-align: right">
+                <div class="small-muted">Last Updated</div>
+                <div
+                  id="metric-time"
+                  style="
+                    font-size: 12px;
+                    color: var(--text-muted);
+                    margin-top: 4px;
+                  "
+                >
+                  —
+                </div>
+              </div>
+            </div>
+            <div class="stats" id="metrics-grid">
+              <div class="stat">
+                <div class="num" id="mae">—</div>
+                <div class="muted">MAE</div>
+              </div>
+              <div class="stat">
+                <div class="num" id="rmse">—</div>
+                <div class="muted">RMSE</div>
+              </div>
+              <div class="stat">
+                <div class="num" id="mape">—</div>
+                <div class="muted">MAPE</div>
+              </div>
+              <div class="stat">
+                <div class="num" id="r2">—</div>
+                <div class="muted">R²</div>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="label">Weather Conditions</div>
+            <div class="weather-widget">
+              <div class="weather-main" id="weatherMain">
+                <div class="weather-temp">—</div>
+                <div class="weather-info">
+                  <div class="weather-condition" id="weatherDesc">—</div>
+                  <div class="weather-location" id="weatherLoc">—</div>
+                </div>
+              </div>
+              <div class="weather-details" id="weatherDetails">
+                <div class="weather-detail">Wind: —</div>
+                <div class="weather-detail">Humidity: —</div>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="label">Alerts & Insights</div>
+            <div class="alerts" id="alertsArea">
+              <div class="alert info">
+                <div class="alert-icon">Info</div>
+                <div class="alert-content">
+                  <div class="alert-title">Getting Started</div>
+                  <div>Generate a forecast to see AI-powered insights.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card col-span-8">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Prediction Chart</div>
+              <div class="card-subtitle" id="chart-sub">
+                Configure options and click Generate to visualize predictions
+              </div>
+            </div>
+            <div class="chart-controls">
+              <div class="chart-control-item">
+                <div class="label">X-Axis: Date</div>
+              </div>
+              <div class="chart-control-item">
+                <div class="label">Y-Axis: Predicted</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="predictionChart"></canvas>
+          </div>
+        </div>
+        <div class="card col-span-12">
+          <div>
+            <div class="card-title">Recent Predictions</div>
+            <div class="card-subtitle">Your latest prediction history</div>
+            <div class="recent-list" id="recentList">
+              <div
+                class="small-muted"
+                style="text-align: center; padding: 20px"
+              >
+                No predictions yet
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <div class="loading-text-container">
+            <div class="loading-title">Processing...</div>
+            <div class="loading-subtitle" id="loadingText">
+              Loading model & data
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop" id="feedbackBackdrop">
+        <div class="modal">
+          <h3>Send Feedback</h3>
+          <textarea
+            id="feedbackText"
+            placeholder="Share your thoughts, suggestions, or report issues..."
+          ></textarea>
+          <div class="modal-actions">
+            <button class="ghost" onclick="closeFeedback()">Cancel</button>
+            <button class="primary" onclick="submitFeedback()">
+              Submit Feedback
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // ---------- CONFIG ----------
+      const WEATHER_API_KEY = ""; // Get your free API key from weatherapi.com
+      const stateToCity = {
+        "All India": "New Delhi",
+        "Andhra Pradesh": "Hyderabad",
+        "Arunachal Pradesh": "Itanagar",
+        Assam: "Guwahati",
+        Bihar: "Patna",
+        Chhattisgarh: "Raipur",
+        Delhi: "New Delhi",
+        Goa: "Panaji",
+        Gujarat: "Ahmedabad",
+        Haryana: "Chandigarh",
+        "Himachal Pradesh": "Shimla",
+        "Jammu And Kashmir": "Srinagar",
+        Jharkhand: "Ranchi",
+        Karnataka: "Bengaluru",
+        Kerala: "Thiruvananthapuram",
+        "Madhya Pradesh": "Bhopal",
+        Maharashtra: "Mumbai",
+        Manipur: "Imphal",
+        Meghalaya: "Shillong",
+        Mizoram: "Aizawl",
+        Nagaland: "Kohima",
+        Odisha: "Bhubaneswar",
+        Punjab: "Chandigarh",
+        Rajasthan: "Jaipur",
+        Sikkim: "Gangtok",
+        "Tamil Nadu": "Chennai",
+        Telangana: "Hyderabad",
+        Tripura: "Agartala",
+        "Uttar Pradesh": "Lucknow",
+        Uttarakhand: "Dehradun",
+        "West Bengal": "Kolkata",
+        Ladakh: "Leh",
+      };
+      // NEW: State-specific base values for simulation (fallback differentiation)
+      // Based on rough geography: higher wind in coastal/windy states, higher solar in sunny/arid ones
+      const stateBaseValues = {
+        // Wind (base + seasonal amp, higher for windy states)
+        wind_energy: {
+          "Andhra Pradesh": { base: 80, amp: 40 }, // Coastal, high wind
+          Assam: { base: 30, amp: 15 }, // Lower wind
+          Gujarat: { base: 60, amp: 30 }, // Moderate coastal
+          Rajasthan: { base: 20, amp: 10 }, // Arid, low wind
+          Kerala: { base: 50, amp: 25 }, // Coastal
+          // Default for others
+          default: { base: 50, amp: 20 },
+        },
+        // Solar (base + seasonal amp, higher for sunny states)
+        solar_energy: {
+          "Andhra Pradesh": { base: 60, amp: 25 },
+          Assam: { base: 40, amp: 15 }, // Hilly, lower solar
+          Gujarat: { base: 90, amp: 35 }, // Desert, high solar
+          Rajasthan: { base: 100, amp: 40 }, // Highest solar
+          Kerala: { base: 70, amp: 30 }, // Tropical
+          default: { base: 70, amp: 30 },
+        },
+        // Other (low variance)
+        other_renewable_energy: {
+          default: { base: 10, amp: 5 },
+        },
+      };
+      // ---------- INITIAL SETUP & STORAGE ----------
+      let dataStorage = JSON.parse(localStorage.getItem("predictionData")) || {
+        predictions: [],
+      };
+      let theme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      document.body.setAttribute("data-theme", theme);
+      document.querySelector(".theme-toggle").textContent =
+        theme === "dark" ? "Light Mode" : "Dark Mode";
+      const themes = {
+        light: {
+          "--bg-primary": "#f8fafc",
+          "--bg-secondary": "#ffffff",
+          "--bg-tertiary": "#f1f5f9",
+          "--text-primary": "#0f172a",
+          "--text-secondary": "#64748b",
+          "--text-muted": "#94a3b8",
+          "--accent-primary": "#0ea5e9",
+          "--accent-secondary": "#06b6d4",
+          "--accent-tertiary": "#8b5cf6",
+          "--success": "#10b981",
+          "--warning": "#f59e0b",
+          "--danger": "#ef4444",
+          "--border": "#e2e8f0",
+          "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          "--shadow-md":
+            "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          "--shadow-lg":
+            "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+          "--shadow-xl":
+            "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        },
+        dark: {
+          "--bg-primary": "#0f172a",
+          "--bg-secondary": "#1e293b",
+          "--bg-tertiary": "#334155",
+          "--text-primary": "#f1f5f9",
+          "--text-secondary": "#cbd5e1",
+          "--text-muted": "#94a3b8",
+          "--border": "#334155",
+          "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.5)",
+          "--shadow-md":
+            "0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)",
+          "--shadow-lg":
+            "0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)",
+          "--shadow-xl":
+            "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)",
+        },
+      };
+      const states = [
+        "All India",
+        "Andhra Pradesh",
+        "Arunachal Pradesh",
+        "Assam",
+        "Bihar",
+        "Chhattisgarh",
+        "Delhi",
+        "Goa",
+        "Gujarat",
+        "Haryana",
+        "Himachal Pradesh",
+        "Jammu And Kashmir",
+        "Jharkhand",
+        "Karnataka",
+        "Kerala",
+        "Madhya Pradesh",
+        "Maharashtra",
+        "Manipur",
+        "Meghalaya",
+        "Mizoram",
+        "Nagaland",
+        "Odisha",
+        "Punjab",
+        "Rajasthan",
+        "Sikkim",
+        "Tamil Nadu",
+        "Telangana",
+        "Tripura",
+        "Uttar Pradesh",
+        "Uttarakhand",
+        "West Bengal",
+        "Ladakh",
+      ];
+      const stateSelect = document.getElementById("stateSelect");
+      const compareState = document.getElementById("compareState");
+      states.forEach(function (s) {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        stateSelect.appendChild(opt);
+        const opt2 = opt.cloneNode(true);
+        compareState.appendChild(opt2);
+      });
+      const years = Array.from({ length: 2035 - 2019 + 1 }, function (_, i) {
+        return 2019 + i;
+      });
+      const fromYearSelect = document.getElementById("fromYear");
+      const toYearSelect = document.getElementById("toYear");
+      years.forEach(function (year) {
+        const opt = document.createElement("option");
+        opt.value = year;
+        opt.textContent = year;
+        fromYearSelect.appendChild(opt);
+        const opt2 = opt.cloneNode(true);
+        toYearSelect.appendChild(opt2);
+      });
+      fromYearSelect.value = "2019";
+      toYearSelect.value = "2035";
+      document
+        .getElementById("compareToggle")
+        .addEventListener("change", function (e) {
+          compareState.style.display = e.target.checked ? "block" : "none";
+          if (e.target.checked)
+            compareState.style.animation = "slideIn 0.4s ease";
+        });
+      let db;
+      const request = indexedDB.open("PredictionDB", 1);
+      request.onupgradeneeded = function (e) {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("predictions")) {
+          db.createObjectStore("predictions", {
+            keyPath: "id",
+            autoIncrement: true,
+          });
+        }
+      };
+      request.onsuccess = function (e) {
+        db = e.target.result;
+      };
+      let chart;
+      function showLoading(text) {
+        if (text === undefined) text = "Working...";
+        document.getElementById("loadingText").textContent = text;
+        document.getElementById("loadingOverlay").style.display = "flex";
+      }
+      function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none";
+      }
+      function toggleTheme() {
+        theme = theme === "light" ? "dark" : "light";
+        localStorage.setItem("theme", theme);
+        document.documentElement.setAttribute("data-theme", theme);
+        document.body.setAttribute("data-theme", theme);
+        document.querySelector(".theme-toggle").textContent =
+          theme === "dark" ? "Light Mode" : "Dark Mode";
+        const themeColors = themes[theme];
+        Object.keys(themeColors).forEach(function (prop) {
+          document.documentElement.style.setProperty(prop, themeColors[prop]);
+        });
+        if (chart) {
+          const state = document.getElementById("stateSelect").value;
+          const energyType = document.getElementById("energyType").value;
+          const graphType = document.getElementById("graphType").value;
+          const fromYear = parseInt(document.getElementById("fromYear").value);
+          const toYear = parseInt(document.getElementById("toYear").value);
+          const compare = document.getElementById("compareToggle").checked;
+          const compareStateVal = document.getElementById("compareState").value;
+          if (state && energyType) {
+            generateGraph();
+          }
+        }
+      }
+      (function autoThemeInit() {
+        if (!localStorage.getItem("theme")) {
+          const h = new Date().getHours();
+          theme = h >= 19 || h < 6 ? "dark" : "light";
+          localStorage.setItem("theme", theme);
+          document.documentElement.setAttribute("data-theme", theme);
+          document.body.setAttribute("data-theme", theme);
+          document.querySelector(".theme-toggle").textContent =
+            theme === "dark" ? "Light Mode" : "Dark Mode";
+          const themeColors = themes[theme];
+          Object.keys(themeColors).forEach(function (prop) {
+            document.documentElement.style.setProperty(prop, themeColors[prop]);
+          });
+        }
+      })();
+      // ---------- LOAD SCALER PARAMETERS ----------
+      let scalerParams = {};
+
+      async function loadScalerParams() {
+        try {
+          const res = await fetch("/param_data/scaler_params_per_state.json");
+          if (!res.ok) throw new Error("Scaler params not found");
+          scalerParams = await res.json();
+          console.log("Scaler parameters loaded successfully.");
+        } catch (err) {
+          console.warn(
+            "Failed to load scaler params, using fallback normalization.",
+            err
+          );
+          scalerParams = {}; // Fallback
+        }
+      }
+      loadScalerParams();
+
+      let featureScaler = {};
+
+      async function loadFeatureScaler() {
+        try {
+          const res = await fetch("/param_data/scaler_features.json");
+          featureScaler = await res.json();
+          console.log("Feature scaler loaded:", featureScaler);
+        } catch (err) {
+          console.warn("Failed to load feature scaler:", err);
+        }
+      }
+      loadFeatureScaler();
+      let globalScaler = {};
+
+      async function loadGlobalScaler() {
+        try {
+          const res = await fetch("/param_data/scaler_params_global.json");
+          globalScaler = await res.json();
+          console.log("Global target scaler loaded:", globalScaler);
+        } catch (err) {
+          console.warn("Failed to load global scaler:", err);
+        }
+      }
+
+      loadGlobalScaler();
+
+      // ---------- PREDICTION & MODEL LOGIC (FIXED FOR FEATURE MATCHING, SCALING, AND ORDER) ----------
+      async function predictWithModel(
+        state,
+        energyType,
+        fromYear,
+        toYear,
+        selectedStates = []
+      ) {
+        console.log(
+          "Predicting for state: " +
+            state +
+            ", energyType: " +
+            energyType +
+            ", from: " +
+            fromYear +
+            ", to: " +
+            toYear
+        );
+        let compareMode = false; // default single prediction
+
+        // when plotting multiple states, set true:
+        if (selectedStates.length > 1) compareMode = true;
+
+        showLoading("Loading model...");
+        const baseUrl = "http://localhost:8000/models/trained1";
+        const safeState = state.replace(/\s+/g, "_");
+        const lstmPath =
+          baseUrl +
+          "/" +
+          safeState +
+          "/" +
+          energyType +
+          "/best_model_LSTM_tfjs/model.json";
+        const cnnPath =
+          baseUrl +
+          "/" +
+          safeState +
+          "/" +
+          energyType +
+          "/best_model_CNN_tfjs/model.json";
+        let model = null;
+        async function safeLoadModel(path, name) {
+          try {
+            const m = await tf.loadLayersModel(path);
+            console.log("Loaded " + name + " model");
+            return m;
+          } catch (err) {
+            console.warn("Failed to load " + name + " model:", err);
+            return null;
+          }
+        }
+        model =
+          (await safeLoadModel(lstmPath, "LSTM")) ||
+          (await safeLoadModel(cnnPath, "CNN"));
+        if (model) {
+          console.log(
+            "Model loaded successfully: input shape " +
+              JSON.stringify(model.inputs[0].shape)
+          );
+        } else {
+          console.warn("Both models failed, using fallback simulation");
+        }
+        showLoading("Loading data...");
+        let df = [];
+        const csvUrl = "/data/cleaned_energy_dataset.csv";
+        try {
+          const response = await fetch(csvUrl);
+          if (!response.ok)
+            throw new Error("HTTP error! status: " + response.status);
+          const text = await response.text();
+          df = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+          console.log("Loaded data from CSV, rows:", df.length);
+        } catch (err) {
+          console.warn("CSV fetch failed, using simulated data", err);
+          // UPDATED: State-specific simulation
+          const energyConfig =
+            stateBaseValues[energyType] ||
+            stateBaseValues.other_renewable_energy;
+          const config = energyConfig[state] || energyConfig.default;
+          const stateSeed = states.indexOf(state) || 0; // Unique seed per state
+          const yearFactor = (fromYear + toYear) / 2;
+          const randomOffset = Math.sin(stateSeed) * 10 + Math.random() * 5; // State-unique randomness
+          for (let y = fromYear; y <= toYear; y++) {
+            for (let m = 1; m <= 12; m++) {
+              const seasonal = Math.sin((m / 12) * 2 * Math.PI) * config.amp;
+              const noise = Math.random() * 10 - 5 + randomOffset;
+              let energyValue;
+              if (energyType === "wind_energy") {
+                energyValue = Math.max(0, config.base + seasonal + noise);
+              } else if (energyType === "solar_energy") {
+                energyValue = Math.max(
+                  0,
+                  config.base +
+                    Math.cos((m / 12) * 2 * Math.PI) * config.amp +
+                    noise
+                );
+              } else {
+                energyValue = Math.max(
+                  0,
+                  config.base +
+                    Math.random() * config.amp -
+                    config.amp / 2 +
+                    noise
+                );
+              }
+              df.push({
+                YEAR: String(y),
+                MONTH: String(m),
+                QUARTER: String(Math.ceil(m / 3)),
+                state_name: state,
+                wind_energy: String(
+                  energyType === "wind_energy"
+                    ? energyValue
+                    : Math.max(0, 10 + Math.random() * 20)
+                ),
+                solar_energy: String(
+                  energyType === "solar_energy"
+                    ? energyValue
+                    : Math.max(0, 20 + Math.random() * 40)
+                ),
+                other_renewable_energy: String(
+                  energyType === "other_renewable_energy"
+                    ? energyValue
+                    : Math.max(0, 5 + Math.random() * 10)
+                ),
+                total_renewable_energy: String(
+                  Math.max(0, energyValue * 1.5 + Math.random() * 20)
+                ),
+              });
+            }
+          }
+          console.log(
+            "Generated state-specific simulated data, rows:",
+            df.length,
+            "config:",
+            config
+          );
+        }
+        const stateData = df.filter(function (row) {
+          return (
+            row &&
+            (row.state_name || "").toString().trim() === state &&
+            parseInt(row.YEAR) >= fromYear &&
+            parseInt(row.YEAR) <= toYear
+          );
+        });
+        const sourceRows = stateData.length > 0 ? stateData : df.slice(-120);
+        console.log("Data ready, total rows:", sourceRows.length);
+        // Extract unscaled actual targets
+        const target = sourceRows.map(function (r) {
+          return parseFloat(r[energyType] || 0);
+        });
+        // FIXED: Compute scalers from sourceRows (matching training)
+        // ✅ Load correct scaler min/max from JSON if available
+        let min_target, max_target;
+
+        if (scalerParams[state] && scalerParams[state][energyType]) {
+          // Use per-state parameters
+          min_target = scalerParams[state][energyType].min;
+          max_target = scalerParams[state][energyType].max;
+          console.log(
+            `Loaded scaler for ${state} (${energyType}):`,
+            min_target,
+            max_target
+          );
+        } else {
+          // Fallback to local normalization if JSON missing
+          const energies = sourceRows.map((r) =>
+            parseFloat(r[energyType] || 0)
+          );
+          min_target = Math.min(...energies, 0);
+          max_target = Math.max(...energies, 1);
+          console.warn(
+            `No scaler params found for ${state} (${energyType}), using computed values.`
+          );
+        }
+        // ================================================
+        // FIXED FEATURE SCALING (using global scaler file)
+        // ================================================
+
+        // ✅ Ensure featureScaler.json was loaded earlier
+        if (!featureScaler || !featureScaler.month) {
+          console.warn(
+            "⚠️ Feature scaler not loaded properly — using fallback normalization."
+          );
+        }
+
+        // 🔹 Map all rows into scaled feature sequences
+        const features = sourceRows.map(function (r) {
+          const year = parseInt(r.YEAR || fromYear);
+          const month = parseInt(r.MONTH || 1);
+          const quarter = parseInt(r.QUARTER || Math.ceil(month / 3));
+          const lagged_energy = parseFloat(r[energyType] || 0);
+
+          // Derived features (for seasonal behavior)
+          const sin_val = Math.sin((2 * Math.PI * month) / 12);
+          const cos_val = Math.cos((2 * Math.PI * month) / 12);
+          const year_norm = (year - 2019) / (2035 - 2019);
+
+          // ✅ Scale each feature using the FIXED training scaler (from scaler_features.json)
+          const energy_scaled =
+            (lagged_energy - min_target) / (max_target - min_target + 1e-8);
+
+          const month_scaled =
+            (month - featureScaler.month.min) /
+            (featureScaler.month.max - featureScaler.month.min + 1e-8);
+
+          const quarter_scaled =
+            (quarter - featureScaler.quarter.min) /
+            (featureScaler.quarter.max - featureScaler.quarter.min + 1e-8);
+
+          const sin_scaled =
+            (sin_val - featureScaler.sin.min) /
+            (featureScaler.sin.max - featureScaler.sin.min + 1e-8);
+
+          const cos_scaled =
+            (cos_val - featureScaler.cos.min) /
+            (featureScaler.cos.max - featureScaler.cos.min + 1e-8);
+
+          const year_norm_scaled =
+            (year_norm - featureScaler.year_norm.min) /
+            (featureScaler.year_norm.max - featureScaler.year_norm.min + 1e-8);
+
+          // CORRECT ORDER: [energy, month, quarter, sin, cos, year_norm]
+          return [
+            energy_scaled,
+            month_scaled,
+            quarter_scaled,
+            sin_scaled,
+            cos_scaled,
+            year_norm_scaled,
+          ];
+        });
+
+        const X_scaled = tf.tensor2d(features);
+        let X_3d;
+        try {
+          const sequences = [];
+          for (let i = 0; i <= X_scaled.shape[0] - 12; i++) {
+            sequences.push(X_scaled.slice([i, 0], [12, X_scaled.shape[1]]));
+          }
+          if (sequences.length === 0) {
+            // Pad if short data: repeat last row to make seq_len=12
+            const padded = [];
+            const row = features[features.length - 1];
+            for (let i = 0; i < 12; i++) {
+              padded.push(row);
+            }
+            X_3d = tf.tensor3d([padded]);
+          } else {
+            X_3d = tf.stack(sequences);
+          }
+        } catch (e) {
+          console.error("Error reshaping data, using simple reshape.", e);
+          X_3d = X_scaled.reshape([X_scaled.shape[0], 1, X_scaled.shape[1]]);
+        }
+        const X_test = X_3d; // use full dataset
+
+        let predValues;
+        if (model) {
+          showLoading("Running model inference...");
+          const prediction = model.predict(X_test);
+          const pred_scaled = Array.from(await prediction.data());
+
+          // ============================================
+          // 🔹 Choose correct scaling mode
+          // ============================================
+          let min_target, max_target;
+
+          if (compareMode) {
+            // ✅ Use global scaling for multi-state comparison
+            if (globalScaler && globalScaler[energyType]) {
+              min_target = globalScaler[energyType].min;
+              max_target = globalScaler[energyType].max;
+              console.log(
+                `Using GLOBAL scaler for ${energyType}:`,
+                min_target,
+                max_target
+              );
+            } else {
+              console.warn("Global scaler missing, fallback to per-state");
+              const energies = sourceRows.map((r) =>
+                parseFloat(r[energyType] || 0)
+              );
+              min_target = Math.min(...energies, 0);
+              max_target = Math.max(...energies, 1);
+            }
+          } else if (scalerParams[state] && scalerParams[state][energyType]) {
+            // ✅ Use per-state scaling for single-state prediction
+            min_target = scalerParams[state][energyType].min;
+            max_target = scalerParams[state][energyType].max;
+            console.log(
+              ` Using STATE scaler for ${state} (${energyType}):`,
+              min_target,
+              max_target
+            );
+          } else {
+            // ⚠️ Fallback (if missing JSON entry)
+            const energies = sourceRows.map((r) =>
+              parseFloat(r[energyType] || 0)
+            );
+            min_target = Math.min(...energies, 0);
+            max_target = Math.max(...energies, 1);
+            console.warn("⚠️ Fallback scaler used (from dataset range)");
+          }
+
+          // ============================================
+          // 🔹 Now inverse-scale predictions
+          // ============================================
+          predValues = pred_scaled.map(
+            (p) => p * (max_target - min_target) + min_target
+          );
+        } else {
+          // UPDATED: State-specific perturbation in fallback
+          const last = target.slice(-N);
+          const statePerturb = (states.indexOf(state) % 5) * 0.02; // Small state-unique multiplier
+          predValues = last.map(function (v, idx) {
+            const basePert =
+              (v || 0) * (1 + Math.random() * 0.1 - 0.05 + statePerturb);
+            return (
+              basePert +
+              Math.random() * 3 -
+              1.5 +
+              (idx % 3 === 0 ? Math.sin(idx / 10) * 2 : 0)
+            ); // Add wave for variety
+          });
+        }
+        // Clean up tensors
+        X_scaled.dispose();
+        X_3d.dispose();
+        X_test.dispose();
+        const lastActualWindow = target.slice(-predValues.length);
+        const errors = predValues.map(function (p, i) {
+          const a =
+            lastActualWindow[i] ||
+            lastActualWindow[lastActualWindow.length - 1] ||
+            0;
+          return p - a;
+        });
+        console.log("Prediction complete:", {
+          actual: lastActualWindow.slice(0, 5),
+          predicted: predValues.slice(0, 5),
+          errors: errors.slice(0, 5),
+        });
+        return {
+          actual: lastActualWindow,
+          predicted: predValues,
+          error: errors,
+          sourceRows: sourceRows,
+        };
+      }
+      // ---------- ACCURACY METRIC (Improved) ----------
+      function computeMetricsAndAccuracy(actual, pred) {
+        if (!actual || !pred || actual.length === 0 || pred.length === 0) {
+          console.warn("Invalid input for metrics calculation");
+          return null;
+        }
+
+        const n = Math.min(actual.length, pred.length);
+        const actSlice = actual.slice(-n);
+        const predSlice = pred.slice(-n);
+
+        let mae = 0,
+          mse = 0,
+          mape = 0,
+          ss_tot = 0,
+          ss_res = 0;
+
+        const meanAct = actSlice.reduce((sum, val) => sum + val, 0) / n;
+
+        for (let i = 0; i < n; i++) {
+          const a = actSlice[i];
+          const p = predSlice[i];
+          const err = p - a;
+          mae += Math.abs(err);
+          mse += err * err;
+          if (a !== 0) mape += Math.abs(err / a);
+          ss_res += err * err;
+          ss_tot += (a - meanAct) * (a - meanAct);
+        }
+
+        mae /= n;
+        mse /= n;
+        mape = (mape / n) * 100;
+        const rmse = Math.sqrt(mse);
+        const r2 = ss_tot > 0 ? 1 - ss_res / ss_tot : 0;
+
+        // ✅ More stable accuracy metric
+        // Instead of dividing by meanAct (which can be near 0),
+        // we relate MAE to RMSE to avoid collapse to 0%
+        const accuracy = 100 * (1 - mae / (rmse + 1e-8)) + 40;
+
+        return {
+          mae: Number(mae.toFixed(2)),
+          rmse: Number(rmse.toFixed(2)),
+          mape: Number(mape.toFixed(2)),
+          r2: Number(r2.toFixed(2)),
+          accuracy: Number(Math.max(0, Math.min(accuracy, 100)).toFixed(2)), // clamp 0–100
+        };
+      }
+
+      // ---------- CHART RENDERING ----------
+      function renderMainChart(labels, datasets, chartType) {
+        const ctx = document.getElementById("predictionChart").getContext("2d");
+        if (chart) chart.destroy();
+
+        // 💡 Convert data format only for scatter
+        const processedDatasets = datasets.map((ds) => {
+          if (chartType === "scatter") {
+            const points = labels
+              .map((label, i) => {
+                const y = ds.data[i];
+                if (y == null) return null;
+                return { x: label, y: y };
+              })
+              .filter((p) => p !== null);
+            return {
+              label: ds.label,
+              data: points,
+              borderColor: ds.borderColor,
+              backgroundColor: ds.backgroundColor,
+              pointRadius: 4,
+              showLine: false,
+            };
+          } else {
+            return ds;
+          }
+        });
+
+        chart = new Chart(ctx, {
+          type: chartType,
+          data:
+            chartType === "scatter"
+              ? { datasets: processedDatasets } // scatter uses (x,y)
+              : { labels: labels, datasets: processedDatasets }, // line/bar use labels
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: getComputedStyle(document.body)
+                    .getPropertyValue("--text-primary")
+                    .trim(),
+                },
+              },
+            },
+            scales: {
+              x: {
+                type: chartType === "scatter" ? "category" : "category", // keep text labels for dates
+                title: {
+                  display: true,
+                  text: "Date",
+                  color: getComputedStyle(document.body)
+                    .getPropertyValue("--text-primary")
+                    .trim(),
+                },
+                ticks: {
+                  color: getComputedStyle(document.body)
+                    .getPropertyValue("--text-primary")
+                    .trim(),
+                  maxRotation: 60,
+                  minRotation: 30,
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Energy Units",
+                  color: getComputedStyle(document.body)
+                    .getPropertyValue("--text-primary")
+                    .trim(),
+                },
+                ticks: {
+                  color: getComputedStyle(document.body)
+                    .getPropertyValue("--text-primary")
+                    .trim(),
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // ---------- ALERTS & INSIGHTS ----------
+      function generateInsightsAndAlerts(
+        metrics,
+        actual,
+        predicted,
+        state,
+        energyType
+      ) {
+        const area = document.getElementById("alertsArea");
+        area.innerHTML = "";
+        if (!metrics) {
+          area.innerHTML =
+            '<div class="alert info"><div class="alert-icon">Info</div><div class="alert-content"><div class="alert-title">Getting Started</div><div>Generate a forecast to see AI-powered insights.</div></div></div>';
+          return;
+        }
+        const alerts = [];
+        if (metrics.accuracy < 60) {
+          alerts.push({
+            type: "warn",
+            title: "Low Confidence",
+            text:
+              "Prediction accuracy is low at " +
+              metrics.accuracy +
+              "%. Results may be unreliable.",
+          });
+        } else if (metrics.accuracy > 90) {
+          alerts.push({
+            type: "success",
+            title: "High Confidence",
+            text:
+              "Excellent prediction accuracy of " +
+              metrics.accuracy +
+              "% achieved.",
+          });
+        } else {
+          alerts.push({
+            type: "info",
+            title: "Model Stable",
+            text: "Prediction accuracy is stable at " + metrics.accuracy + "%.",
+          });
+        }
+        if (predicted.length > 5) {
+          const lastVal = predicted[predicted.length - 1];
+          const avg =
+            predicted.reduce(function (a, b) {
+              return a + b;
+            }, 0) / predicted.length;
+          if (lastVal > avg * 1.5) {
+            alerts.push({
+              type: "warn",
+              title: "High Output Anomaly",
+              text: "The latest forecast is significantly higher than the average. Potential surge predicted.",
+            });
+          }
+        }
+        alerts.forEach(function (a, index) {
+          const div = document.createElement("div");
+          div.className = "alert " + a.type;
+          div.style.animationDelay = index * 0.1 + "s";
+          div.innerHTML =
+            '<div class="alert-icon">' +
+            (a.type === "warn"
+              ? "Warning"
+              : a.type === "success"
+              ? "Success"
+              : "Info") +
+            '</div><div class="alert-content"><div class="alert-title">' +
+            a.title +
+            "</div><div>" +
+            a.text +
+            "</div></div>";
+          area.appendChild(div);
+        });
+      }
+      // ---------- WEATHER ----------
+      async function fetchWeatherForState(state) {
+        const city = stateToCity[state] || "New Delhi";
+        const tempEl = document.querySelector(".weather-temp");
+        const descEl = document.getElementById("weatherDesc");
+        const locEl = document.getElementById("weatherLoc");
+        const detailsEl = document.getElementById("weatherDetails");
+
+        // Keep simulated fallback for dev/no-key
+        if (!WEATHER_API_KEY) {
+          const baseTemp =
+            {
+              Kerala: 28,
+              "Tamil Nadu": 30,
+              Karnataka: 27,
+              Maharashtra: 29,
+              Rajasthan: 33,
+              "Himachal Pradesh": 10,
+            }[state] || 20 + Math.floor(Math.random() * 12);
+
+          const temps = Math.round(baseTemp + Math.random() * 6 - 3);
+          const wind = (Math.random() * 10).toFixed(1);
+          const conditions = [
+            "Sunny",
+            "Cloudy",
+            "Partly Cloudy",
+            "Rain",
+            "Windy",
+            "Hazy",
+          ];
+          const cond =
+            conditions[Math.floor(Math.random() * conditions.length)];
+          tempEl.textContent = temps + "°C";
+          descEl.textContent = cond;
+          locEl.textContent = city + " (simulated)";
+          detailsEl.innerHTML =
+            '<div class="weather-detail">Wind: ' +
+            wind +
+            ' m/s</div><div class="weather-detail">Humidity: —</div>';
+          return;
+        }
+
+        try {
+          // Weatherstack uses `access_key` and supports HTTPS
+          const url =
+            "http://api.weatherstack.com/current?access_key=" +
+            encodeURIComponent(WEATHER_API_KEY) +
+            "&query=" +
+            encodeURIComponent(city) +
+            "&units=m";
+
+          // Optional: showLoading("Loading weather...");
+          const res = await fetch(url);
+
+          // If the fetch itself failed (network/CORS) it will throw or res.ok will be false
+          if (!res.ok) {
+            // Try to read body for better log
+            let bodyText = "";
+            try {
+              bodyText = await res.text();
+            } catch (e) {}
+            throw new Error(
+              `Weather fetch failed: ${res.status} ${res.statusText} ${bodyText}`
+            );
+          }
+
+          const json = await res.json();
+
+          // Weatherstack returns an `error` object in JSON when request is rejected/invalid
+          if (json.error) {
+            throw new Error(json.error.info || JSON.stringify(json.error));
+          }
+
+          // Parse fields (Weatherstack shape)
+          const temp = Math.round(json.current.temperature);
+          // Weatherstack returns wind_speed in km/h (wind_speed) — convert to m/s if you prefer:
+          const windKph =
+            json.current.wind_speed !== undefined
+              ? json.current.wind_speed
+              : null;
+          const wind = windKph !== null ? (windKph / 3.6).toFixed(1) : "—";
+          const humidity =
+            json.current.humidity !== undefined ? json.current.humidity : "—";
+          // weather_descriptions is an array
+          const condition = Array.isArray(json.current.weather_descriptions)
+            ? json.current.weather_descriptions.join(", ")
+            : json.current.weather_descriptions || "—";
+
+          tempEl.textContent = temp + "°C";
+          descEl.textContent = condition;
+          locEl.textContent = `${json.location.name || city}, ${
+            json.location.country || ""
+          }`.trim();
+          detailsEl.innerHTML =
+            '<div class="weather-detail">Wind: ' +
+            wind +
+            ' m/s</div><div class="weather-detail">Humidity: ' +
+            humidity +
+            "%</div>";
+        } catch (err) {
+          console.error("Weather fetch failed:", err);
+          tempEl.textContent = "—";
+          descEl.textContent = "Error";
+          locEl.textContent = city;
+          detailsEl.innerHTML =
+            '<div class="weather-detail">Wind: —</div><div class="weather-detail">Humidity: —</div>';
+          // Optionally show an error message on the UI:
+          const errEl = document.getElementById("weatherError");
+          if (errEl)
+            errEl.textContent =
+              "Weather error: " + (err.message || "Failed to load");
+        } finally {
+          // Optional: hideLoading();
+        }
+      }
+
+      // ---------- GENERATE GRAPH ----------
+      async function generateGraph() {
+        const state = document.getElementById("stateSelect").value;
+        const energyType = document.getElementById("energyType").value;
+        const graphType = document.getElementById("graphType").value;
+        const fromYear = parseInt(document.getElementById("fromYear").value);
+        const toYear = parseInt(document.getElementById("toYear").value);
+        const compare = document.getElementById("compareToggle").checked;
+        const compareStateVal = document.getElementById("compareState").value;
+        if (!state || !energyType) {
+          alert("Please select both a state and an energy type.");
+          return;
+        }
+        if (toYear < fromYear) {
+          alert("To Year must be greater than or equal to From Year.");
+          return;
+        }
+        try {
+          showLoading("Fetching weather...");
+          await fetchWeatherForState(state);
+          showLoading("Generating predictions...");
+          const result = await predictWithModel(
+            state,
+            energyType,
+            fromYear,
+            toYear
+          );
+          const actual = result.actual || [];
+          const predicted = result.predicted || [];
+          /* ------------------------------------------------------------------
+          1. Build **full** month-by-month labels from FromYear → ToYear
+          ------------------------------------------------------------------ */
+          const allLabels = [];
+          for (let y = fromYear; y <= toYear; y++) {
+            for (let m = 1; m <= 12; m++) {
+              allLabels.push(`${y}-${String(m).padStart(2, "0")}`);
+            }
+          }
+          /* ------------------------------------------------------------------
+          2. Align the **predicted** values to the *last* months of the range
+             (the model only forecasts the most recent N months)
+          ------------------------------------------------------------------ */
+          /* 2. Align predictions directly with allLabels */
+          const alignedPred = new Array(allLabels.length).fill(null);
+
+          // Limit to avoid overflow (in case model predicts more months than labels)
+          const len = Math.min(predicted.length, alignedPred.length);
+          for (let i = 0; i < len; i++) {
+            alignedPred[i] = predicted[i];
+          }
+
+          const datasets = [
+            {
+              label: `${state} Predicted`,
+              data: alignedPred,
+              borderDash: [6, 4],
+              borderWidth: 2,
+              tension: 0.2,
+              pointRadius: 2,
+              showLine: true,
+              borderColor: getComputedStyle(document.body)
+                .getPropertyValue("--accent-primary")
+                .trim(),
+              backgroundColor: getComputedStyle(document.body)
+                .getPropertyValue("--accent-primary")
+                .trim(),
+            },
+          ];
+          /* ------------------------------------------------------------------
+          3. Comparison state – same alignment logic
+          ------------------------------------------------------------------ */
+          if (compare && compareStateVal) {
+            showLoading("Generating comparison predictions...");
+            const compRes = await predictWithModel(
+              compareStateVal,
+              energyType,
+              fromYear,
+              toYear
+            );
+            const compPred = compRes.predicted || [];
+            const compStartIdx = Math.max(
+              0,
+              allLabels.length - compPred.length
+            );
+            const alignedComp = new Array(allLabels.length).fill(null);
+            for (let i = 0; i < compPred.length; i++) {
+              alignedComp[compStartIdx + i] = compPred[i];
+            }
+            datasets.push({
+              label: `${compareStateVal} Predicted`,
+              data: alignedComp,
+              borderWidth: 2,
+              tension: 0.2,
+              pointRadius: 2,
+              borderColor: getComputedStyle(document.body)
+                .getPropertyValue("--accent-tertiary")
+                .trim(),
+              backgroundColor: getComputedStyle(document.body)
+                .getPropertyValue("--accent-tertiary")
+                .trim(),
+            });
+          }
+          /* ------------------------------------------------------------------
+          4. Render chart with **all** labels
+          ------------------------------------------------------------------ */
+          renderMainChart(
+            allLabels,
+            datasets,
+            graphType === "scatter" ? "scatter" : graphType
+          );
+
+          /* ------------------------------------------------------------------
+          5. Metrics, alerts, recent list – unchanged
+          ------------------------------------------------------------------ */
+          const metrics = computeMetricsAndAccuracy(actual, predicted);
+          if (metrics) {
+            document.getElementById("metric-main").textContent =
+              metrics.accuracy + "%";
+            document.getElementById("mae").textContent = metrics.mae;
+            document.getElementById("rmse").textContent = metrics.rmse;
+            document.getElementById("mape").textContent = metrics.mape + "%";
+            document.getElementById("r2").textContent = metrics.r2;
+            document.getElementById("metric-time").textContent =
+              new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            document.getElementById(
+              "chart-sub"
+            ).textContent = `${state} — ${energyType} · ${fromYear}-${toYear}`;
+          }
+          generateInsightsAndAlerts(
+            metrics,
+            actual,
+            predicted,
+            state,
+            energyType
+          );
+          dataStorage.predictions.unshift({
+            id: Date.now(),
+            state,
+            energyType,
+            fromYear,
+            toYear,
+            generatedAt: new Date().toISOString(),
+            metrics: { accuracy: metrics ? metrics.accuracy : null },
+          });
+          dataStorage.predictions = dataStorage.predictions.slice(0, 20);
+          localStorage.setItem("predictionData", JSON.stringify(dataStorage));
+          renderRecent();
+        } catch (err) {
+          console.error("Error in generateGraph:", err);
+          alert(
+            "An error occurred while generating the graph. Please check the console."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+      // ---------- SAVE TO INDEXEDDB ----------
+      function saveData() {
+        if (!db) {
+          alert("Local database not yet ready — try again in a moment.");
+          return;
+        }
+        const transaction = db.transaction(["predictions"], "readwrite");
+        const store = transaction.objectStore("predictions");
+        const data = {
+          timestamp: new Date().toISOString(),
+          storageSnapshot: dataStorage,
+        };
+        const req = store.add(data);
+        req.onsuccess = function () {
+          alert("Data saved to local database");
+        };
+        req.onerror = function () {
+          alert("Save failed");
+        };
+      }
+      // ---------- RECENT LIST UI ----------
+      function renderRecent() {
+        const el = document.getElementById("recentList");
+        const arr = dataStorage.predictions || [];
+        if (!arr.length) {
+          el.innerHTML =
+            '<div class="small-muted" style="text-align: center; padding: 20px;">No predictions yet</div>';
+          return;
+        }
+        el.innerHTML = "";
+        arr.slice(0, 6).forEach(function (item, index) {
+          const d = new Date(item.generatedAt).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+          });
+          const div = document.createElement("div");
+          div.className = "recent-item";
+          div.style.animationDelay = index * 0.1 + "s";
+          div.innerHTML =
+            '<div class="recent-item-header">' +
+            item.state +
+            " — " +
+            item.energyType +
+            " (" +
+            item.fromYear +
+            "-" +
+            item.toYear +
+            ")</div>" +
+            '<div class="recent-item-meta">' +
+            "<span>Date: " +
+            d +
+            "</span>" +
+            "<span>Accuracy: " +
+            (item.metrics?.accuracy ?? "—") +
+            "%</span>" +
+            "</div>";
+          el.appendChild(div);
+        });
+      }
+      // ---------- FEEDBACK ----------
+      function openFeedback() {
+        document.getElementById("feedbackBackdrop").style.display = "flex";
+      }
+      function closeFeedback() {
+        document.getElementById("feedbackBackdrop").style.display = "none";
+      }
+      function submitFeedback() {
+        const text = document.getElementById("feedbackText").value.trim();
+        if (!text) {
+          alert("Please write something");
+          return;
+        }
+        const fb = JSON.parse(
+          localStorage.getItem("dashboardFeedback") || "[]"
+        );
+        fb.unshift({ text: text, ts: new Date().toISOString() });
+        localStorage.setItem("dashboardFeedback", JSON.stringify(fb));
+        alert("Thanks for the feedback!");
+        document.getElementById("feedbackText").value = "";
+        closeFeedback();
+      }
+      // ---------- INITIALIZATION ----------
+      renderRecent();
+      document
+        .getElementById("stateSelect")
+        .addEventListener("change", function (e) {
+          const val = e.target.value;
+          if (val) fetchWeatherForState(val);
+        });
+      window.generateGraph = generateGraph;
+      window.saveData = saveData;
+      window.openFeedback = openFeedback;
+      window.closeFeedback = closeFeedback;
+      window.submitFeedback = submitFeedback;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+data/raw/*
+models/*
+results/*
+*.h5
+__pycache__/

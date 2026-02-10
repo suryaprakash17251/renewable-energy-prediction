@@ -1,0 +1,8 @@
+data_path: ../data/processed.csv
+output_dir: ../results/
+models_dir: ../models/trained/
+plots_dir: ../results/plots/
+epochs: 200
+patience: 30
+time_steps: 12
+batch_size: 16
